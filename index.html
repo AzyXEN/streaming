@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <!-- Адаптивный вьюпорт для корректного масштаба на телефонах и планшетах -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmoteka — Стриминговый каталог фильмов</title>
+    <link rel="stylesheet" href="film.css">
+  </head>
+  <body>
+    <!-- Главная обёртка приложения -->
+    <div class="cont">
+      <!-- ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ (ШАПКА) -->
+      <header>
+        <!-- Логотип и название сервиса -->
+        <div class="logo-block">
+          <img src="logos.png" alt="Логотип Filmoteka" id="logos">
+          <h1>Filmoteka</h1>
+        </div>
+
+        <!-- Строка поиска по каталогу OMDb -->
+        <div class="search-box">
+          <input id="search-input" type="search" placeholder="Поиск фильмов (на английском)...">
+          <button id="search-btn" type="button">Найти</button>
+        </div>
+
+        <!-- Кнопки действий справа: Избранное и профиль -->
+        <div class="header-actions">
+          <button id="favorites-btn" class="header-btn secondary-btn" type="button">❤️ Избранное</button>
+
+          <div class="auth-block">
+            <!-- Кнопка для гостей -->
+            <button id="login-btn" class="header-btn primary-btn" type="button">Войти</button>
+            <!-- Блок авторизованного пользователя -->
+            <div class="logged hidden">
+              <span id="user-name"></span>
+              <button id="exit-btn" class="header-btn secondary-btn" type="button">Выйти</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <!-- Хлебные крошки / подзаголовок в стиле стриминга -->
+        <div class="breadcrumb">Главная &rsaquo; Онлайн-каталог</div>
+
+        <!-- Панель быстрого фильтра по жанрам -->
+        <div class="categories">
+          <button class="category-btn" type="button" data-genre="action">Action</button>
+          <button class="category-btn" type="button" data-genre="comedy">Comedy</button>
+          <button class="category-btn" type="button" data-genre="fantasy">Fantasy</button>
+          <button class="category-btn" type="button" data-genre="drama">Drama</button>
+          <button class="category-btn" type="button" data-genre="historical">Historical</button>
+        </div>
+
+        <!-- СЕКЦИЯ ТРЕНДОВ (горизонтальные карточки с постером слева и кнопками справа) -->
+        <section class="trending-section">
+          <div class="section-header">
+            <h2>Популярное сейчас</h2>
+            <span class="section-badge">Подборка недели &rsaquo;</span>
+          </div>
+          <div id="trending-grid" class="trending-scroll"></div>
+        </section>
+
+        <!-- СПИННЕР ЗАГРУЗКИ ДАННЫХ -->
+        <div id="loading" class="hidden" aria-label="Загрузка">
+          <div class="spinner"></div>
+          <span>Ищем фильмы...</span>
+        </div>
+
+        <!-- ОСНОВНАЯ СЕТКА ФИЛЬМОВ (вертикальные постеры) -->
+        <section class="catalog-section">
+          <div class="section-header">
+            <h2>Каталог фильмов</h2>
+          </div>
+          <div id="movies-grid">
+            <p class="grid-placeholder">Выберите жанр или введите название фильма для поиска 🎬</p>
+          </div>
+        </section>
+      </main>
+
+      <!-- ПОДВАЛ САЙТА -->
+      <footer>
+        <p>&copy; 2026 Filmoteka &bull; Стриминговый каталог</p>
+      </footer>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ И РЕГИСТРАЦИИ -->
+    <div id="auth-overlay" class="modal-overlay hidden">
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button id="close-auth-btn" class="modal-close" type="button" aria-label="Закрыть">&times;</button>
+        <h2 id="auth-title">Вход</h2>
+        <form id="auth-form" class="aut">
+          <!-- Поле имени показывается только при регистрации -->
+          <div id="reg-fields" class="hidden">
+            <input id="reg-name" type="text" placeholder="Введите имя">
+          </div>
+          <input id="auth-email" type="email" placeholder="Введите электронную почту" required>
+          <input id="auth-pass" type="password" placeholder="Введите пароль" required>
+          <!-- Повтор пароля идёт строго после основного пароля -->
+          <div id="reg-confirm-field" class="hidden">
+            <input id="reg-pass-confirm" type="password" placeholder="Подтвердите пароль">
+          </div>
+
+          <p id="auth-error"></p>
+          <button id="send-form" class="primary-btn" type="submit">Войти</button>
+          <p id="helper">Нет аккаунта? Зарегистрироваться!</p>
+        </form>
+      </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПРОСМОТРА ФИЛЬМА, ПЛЕЕРА И ОТЗЫВОВ -->
+    <div id="movie-overlay" class="modal-overlay hidden">
+      <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button id="close-modal-btn" class="modal-close" type="button" aria-label="Закрыть">&times;</button>
+        <h2 id="modal-title"></h2>
+        <p id="modal-plot"></p>
+
+        <!-- Блок видеоплеера -->
+        <div class="player-container">
+          <p class="player-header"></p>
+          <video id="movie-player" src="film/video.mp4" poster=""></video>
+          <div class="player-controls">
+            <button id="play-pause-btn" type="button" aria-label="Воспроизвести или пауза">▶</button>
+            <input type="range" id="progress-bar" min="0" max="100" value="0" aria-label="Прогресс видео">
+            <span id="time-display">00:00 / 00:00</span>
+            <button id="mute-btn" type="button" aria-label="Звук">🔊</button>
+            <input type="range" id="volume-bar" min="0" max="1" step="0.1" value="1" aria-label="Громкость">
+            <button id="fullscreen-btn" type="button" aria-label="Полный экран">⛶</button>
+          </div>
+        </div>
+
+        <!-- Секция отзывов и рейтинга -->
+        <div class="review-section">
+          <h3>Отзывы и рейтинг</h3>
+          <p id="average-rating">Средний рейтинг: пока нет оценок</p>
+          <p id="review-auth-notice" class="hidden">Войдите в аккаунт, чтобы оставить отзыв.</p>
+
+          <form id="review-form">
+            <select id="selector" aria-label="Оценка фильма">
+              <option value="5">5 - Отлично</option>
+              <option value="4">4 - Хорошо</option>
+              <option value="3">3 - Нормально</option>
+              <option value="2">2 - Слабо</option>
+              <option value="1">1 - Плохо</option>
+            </select>
+            <textarea id="type-review" placeholder="Напишите ваше впечатление о фильме" required rows="3"></textarea>
+            <button id="submit-btn" class="primary-btn" type="submit">Отправить отзыв</button>
+          </form>
+
+          <div id="review-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="JS/main.js"></script>
+  </body>
+</html>
